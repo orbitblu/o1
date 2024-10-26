@@ -1,8 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 const { connectDB } = require('./src/config/database');
-const authRouter = require('./src/routes/auth');
-const errorHandler = require('./src/middleware/errorHandler');
+const usersRouter = require('./src/routes/users');
+const errorHandler = require('./src/middleware/error');
 require('dotenv').config();
 
 const app = express();
@@ -11,29 +11,38 @@ const port = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
-// Health Check Routes
+// Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// Database health check
 app.get('/api/health/db', async (req, res) => {
   try {
     const client = await connectDB();
     const result = await client.db().command({ ping: 1 });
     res.json({ status: 'success', result });
   } catch (error) {
-    console.error('Database health check failed:', error);
     res.status(500).json({ status: 'error', message: error.message });
   }
 });
 
-// API Routes
-app.use('/api/auth', authRouter);
+// Routes
+app.use('/api/users', usersRouter);
 
-// Error Handler
+// Error handler
 app.use(errorHandler);
 
-// Start Server
+// Start server
 app.listen(port, '0.0.0.0', () => {
   console.log(`API Server running on port ${port}`);
+});
+
+// Handle shutdown
+process.on('SIGINT', async () => {
+  const { client } = require('./src/config/database');
+  if (client) {
+    await client.close();
+  }
+  process.exit(0);
 });
