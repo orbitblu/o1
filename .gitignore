@@ -1,5 +1,25 @@
-node_modules/
+# Environment variables
 .env
-logs/
+.env.*
+!.env.example
+
+# Sensitive documentation
+/var/www/private/*
+
+# Logs
+logs
 *.log
-.DS_Store
+
+# Dependencies
+node_modules
+package-lock.json
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# IDE
+.vscode
+.idea
